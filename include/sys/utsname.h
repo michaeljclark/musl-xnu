@@ -7,6 +7,15 @@ extern "C" {
 
 #include <features.h>
 
+#if defined (__APPLE__)
+struct  utsname {
+	char sysname[256];
+	char nodename[256];
+	char release[256];
+	char version[256];
+	char machine[256];
+};
+#else
 struct utsname {
 	char sysname[65];
 	char nodename[65];
@@ -19,6 +28,7 @@ struct utsname {
 	char __domainname[65];
 #endif
 };
+#endif
 
 int uname (struct utsname *);
 

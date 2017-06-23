@@ -60,8 +60,15 @@ int __setxid(int, int, int, int);
 extern char **__environ;
 
 #undef weak_alias
+#if defined (__APPLE__)
+#define weak_alias(old, new) \
+	__asm__(".globl _" #new); \
+	__asm__("_" #new " = _" #old); \
+	extern __typeof(old) new __attribute__((weak_import))
+#else
 #define weak_alias(old, new) \
 	extern __typeof(old) new __attribute__((weak, alias(#old)))
+#endif
 
 #undef LFS64_2
 #define LFS64_2(x, y) weak_alias(x, y)

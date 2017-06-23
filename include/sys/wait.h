@@ -32,6 +32,31 @@ pid_t wait3 (int *, int, struct rusage *);
 pid_t wait4 (pid_t, int *, int, struct rusage *);
 #endif
 
+#if defined (__APPLE__)
+
+#define WNOHANG     1
+#define WUNTRACED   2
+
+#define WEXITED     4
+#define WSTOPPED    8
+#define WCONTINUED  0x10
+#define WNOWAIT     0x20
+
+#define	_W_INT(i) (i)
+#define	_WSTATUS(x) (_W_INT(x) & 0177)
+#define	_WSTOPPED 0177
+#define _WCOREFLAG 0200
+#define WEXITSTATUS(x) ((_W_INT(x) >> 8) & 0x000000ff)
+#define WSTOPSIG(x) (_W_INT(x) >> 8)
+#define WIFCONTINUED(x) (_WSTATUS(x) == _WSTOPPED && WSTOPSIG(x) == 0x13)
+#define WIFSTOPPED(x) (_WSTATUS(x) == _WSTOPPED && WSTOPSIG(x) != 0x13)
+#define WIFEXITED(x) (_WSTATUS(x) == 0)
+#define WIFSIGNALED(x) (_WSTATUS(x) != _WSTOPPED && _WSTATUS(x) != 0)
+#define WTERMSIG(x) (_WSTATUS(x))
+#define WCOREDUMP(x) (_W_INT(x) & _WCOREFLAG)
+
+#else
+
 #define WNOHANG    1
 #define WUNTRACED  2
 
@@ -52,6 +77,8 @@ pid_t wait4 (pid_t, int *, int, struct rusage *);
 #define WIFSTOPPED(s) ((short)((((s)&0xffff)*0x10001)>>8) > 0x7f00)
 #define WIFSIGNALED(s) (((s)&0xffff)-1U < 0xffu)
 #define WIFCONTINUED(s) ((s) == 0xffff)
+
+#endif
 
 #ifdef __cplusplus
 }

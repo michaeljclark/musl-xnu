@@ -133,8 +133,10 @@ static inline void __wake(volatile void *addr, int cnt, int priv)
 {
 	if (priv) priv = 128;
 	if (cnt<0) cnt = INT_MAX;
+#if !defined(__APPLE__)
 	__syscall(SYS_futex, addr, FUTEX_WAKE|priv, cnt) != -ENOSYS ||
 	__syscall(SYS_futex, addr, FUTEX_WAKE, cnt);
+#endif
 }
 
 void __acquire_ptc(void);

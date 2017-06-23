@@ -27,9 +27,15 @@ extern "C" {
 
 #include <bits/alltypes.h>
 
+#if defined (__APPLE__)
+#define SIG_BLOCK     1
+#define SIG_UNBLOCK   2
+#define SIG_SETMASK   3
+#else
 #define SIG_BLOCK     0
 #define SIG_UNBLOCK   1
 #define SIG_SETMASK   2
+#endif
 
 #define SI_ASYNCNL (-60)
 #define SI_TKILL (-6)
@@ -93,6 +99,41 @@ union sigval {
 	int sival_int;
 	void *sival_ptr;
 };
+
+#if defined (__APPLE__)
+
+typedef struct siginfo {
+        int     si_signo;
+        int     si_errno;
+        int     si_code;
+        pid_t   si_pid;
+        uid_t   si_uid;
+        int     si_status;
+        void    *si_addr;
+        union sigval si_value;
+        long    si_band;
+        unsigned long   __pad[7];
+} siginfo_t;
+
+union __sigaction_u {
+	void    (*__sa_handler)(int);
+	void    (*__sa_sigaction)(int, siginfo_t *, void *);
+};
+
+struct  sigaction {
+	union __sigaction_u __sigaction_u;
+	void    (*sa_tramp)(union __sigaction_u, int, int, siginfo_t *, ucontext_t *);
+	sigset_t sa_mask;
+	int     sa_flags;
+};
+
+#define sa_handler      __sigaction_u.__sa_handler
+#define sa_sigaction    __sigaction_u.__sa_sigaction
+
+#define __sigbits(__signo) \
+    (__signo > _NSIG ? 0 : (1 << (__signo - 1)))
+
+#else
 
 typedef struct {
 #ifdef __SI_SWAP_ERRNO_CODE
@@ -175,6 +216,7 @@ struct sigaction {
 };
 #define sa_handler   __sa_handler.sa_handler
 #define sa_sigaction __sa_handler.sa_sigaction
+#endif
 
 struct sigevent {
 	union sigval sigev_value;
